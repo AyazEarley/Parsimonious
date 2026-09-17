@@ -31,6 +31,8 @@ private:
     ParsimoniousAudioProcessor& audioProcessor;
 
     juce::TextButton generateButton;
+    juce::Slider numBarsKnob;
+    juce::Slider chordsPerBarKnob;
     juce::Label dragArea;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParsimoniousAudioProcessorEditor)
