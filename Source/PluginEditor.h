@@ -30,6 +30,8 @@ private:
 
     ParsimoniousAudioProcessor& audioProcessor;
 
+    juce::Label title;
+
     juce::TextButton generateButton;
     
     juce::Slider numBarsKnob;

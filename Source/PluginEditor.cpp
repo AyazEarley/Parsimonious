@@ -17,6 +17,12 @@ ParsimoniousAudioProcessorEditor::ParsimoniousAudioProcessorEditor (Parsimonious
     generateButton.setButtonText("generate");
     generateButton.addListener(this);
 
+    addAndMakeVisible(title);
+    title.setText("Parsimonious", juce::dontSendNotification);
+
+    title.setFont (juce::Font (32.0f, juce::Font::bold));
+    title.setColour (juce::Label::textColourId, juce::Colours::white);
+    title.setJustificationType (juce::Justification::centred);
 
     addAndMakeVisible(dragArea);
 
@@ -62,6 +68,8 @@ void ParsimoniousAudioProcessorEditor::paint (juce::Graphics& g)
 void ParsimoniousAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced (10);
+
+    title.setBounds(5,5, 200, 30);
 
     const int knobWidth = 100;
     const int buttonWidth = 80;
