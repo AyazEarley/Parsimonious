@@ -30,12 +30,16 @@ ParsimoniousAudioProcessorEditor::ParsimoniousAudioProcessorEditor (Parsimonious
     numBarsKnob.setValue(4.0);
     numBarsKnob.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     addAndMakeVisible(numBarsKnob);
+    numBarsAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+    audioProcessor.apvts, "bars", numBarsKnob);
 
     chordsPerBarKnob.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     chordsPerBarKnob.setRange(1.0, 8.0, 1.0);
     chordsPerBarKnob.setValue(4.0);
     chordsPerBarKnob.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     addAndMakeVisible(chordsPerBarKnob);
+    chordsPerBarAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+    audioProcessor.apvts, "chordsPerBar", chordsPerBarKnob);
 
     setSize (400, 200);
 }
@@ -76,6 +80,7 @@ void ParsimoniousAudioProcessorEditor::resized()
 
 void ParsimoniousAudioProcessorEditor::buttonClicked(juce::Button* button){
     if(button== &generateButton){
-        dragArea.setText("Clicked", juce::dontSendNotification);
+        int numBar = static_cast<int>(numBarsKnob.getValue());
+        dragArea.setText(juce::String(numBar), juce::dontSendNotification);
     }
 }

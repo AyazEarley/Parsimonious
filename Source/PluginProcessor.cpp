@@ -39,7 +39,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout ParsimoniousAudioProcessor::
     params.push_back (std::make_unique<juce::AudioParameterInt>(
         juce::ParameterID { "bars", 1 },
         "bars",
-        1, 100, 1));
+        1, 32, 1));
 
     params.push_back (std::make_unique<juce::AudioParameterInt>(
         juce::ParameterID { "chordsPerBar", 1 },

@@ -31,8 +31,13 @@ private:
     ParsimoniousAudioProcessor& audioProcessor;
 
     juce::TextButton generateButton;
+    
     juce::Slider numBarsKnob;
     juce::Slider chordsPerBarKnob;
+
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> numBarsAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> chordsPerBarAttachment;
+
     juce::Label dragArea;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParsimoniousAudioProcessorEditor)
