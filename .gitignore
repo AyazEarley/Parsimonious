@@ -1,0 +1,11 @@
+build/
+Builds/
+.vs/
+JuceLibraryCode/
+*.o
+*.obj
+*.pdb
+*.ilk
+*.lib
+*.exe
+*.aps
