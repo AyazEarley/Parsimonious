@@ -320,8 +320,8 @@ juce::File ParsimoniousAudioProcessor::createMidiFile (std::vector<std::array<in
     {
         for (int j = 0; j < 4; j++)
         {
-            sequence.addEvent (juce::MidiMessage::noteOn  (1, chords[i][j], (juce::uint8) 100), currentTime);
-            sequence.addEvent (juce::MidiMessage::noteOff (1, chords[i][j]), currentTime + chordLength);
+            sequence.addEvent (juce::MidiMessage::noteOn  (1, chords[i][j] + 60, (juce::uint8) 100), currentTime);
+            sequence.addEvent (juce::MidiMessage::noteOff (1, chords[i][j] + 60), currentTime + chordLength);
         }
 
         currentTime += chordLength;

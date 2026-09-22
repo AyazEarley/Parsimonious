@@ -48,6 +48,16 @@ ParsimoniousAudioProcessorEditor::ParsimoniousAudioProcessorEditor (Parsimonious
     audioProcessor.apvts, "chordsPerBar", chordsPerBarKnob);
 
     setSize (400, 200);
+
+    dragArea.setText ("No file yet", juce::dontSendNotification);
+    dragArea.setJustificationType (juce::Justification::centred);
+    dragArea.setColour (juce::Label::backgroundColourId, juce::Colours::darkgrey);
+    dragArea.setColour (juce::Label::outlineColourId, juce::Colours::black);
+
+    dragArea.onDragRequested = [this]() -> juce::File
+    {
+        return lastGeneratedFile;
+    };
 }
 
 ParsimoniousAudioProcessorEditor::~ParsimoniousAudioProcessorEditor()
@@ -87,8 +97,15 @@ void ParsimoniousAudioProcessorEditor::resized()
 }
 
 void ParsimoniousAudioProcessorEditor::buttonClicked(juce::Button* button){
-    if(button== &generateButton){
+    if(button == &generateButton){
         int numBar = static_cast<int>(numBarsKnob.getValue());
-        dragArea.setText(juce::String(numBar), juce::dontSendNotification);
+
+        std::vector<std::array<int, 4>> chords = audioProcessor.getChords();
+        lastGeneratedFile = audioProcessor.createMidiFile(chords);
+
+        if (lastGeneratedFile.existsAsFile())
+            dragArea.setText ("Drag me into your track!", juce::dontSendNotification);
+        else
+            dragArea.setText ("Generation failed", juce::dontSendNotification);
     }
 }
