@@ -259,31 +259,31 @@ std::vector<std::array<int, 4>> ParsimoniousAudioProcessor::getChords (){
         if (lastQuality == MAJOR7){
             std::uniform_int_distribution<int> distrib(0, 3);
             index = distrib(gen);
-            newRoot = majOptions[index][0];
+            newRoot = (lastRoot + majOptions[index][0]) % 12;
             newQuality = majOptions[index][1];
         }
         else if (lastQuality == MINOR7){
             std::uniform_int_distribution<int> distrib(0, 3);
             index = distrib(gen);
-            newRoot = minOptions[index][0];
+            newRoot = (lastRoot + minOptions[index][0]) % 12;
             newQuality = minOptions[index][1];
         }
         else if (lastQuality == DOM7){
             std::uniform_int_distribution<int> distrib(0, 3);
             index = distrib(gen);
-            newRoot = domOptions[index][0];
+            newRoot = (lastRoot + domOptions[index][0]) % 12;
             newQuality = domOptions[index][1];
         }
         else if (lastQuality == HALF7){
             std::uniform_int_distribution<int> distrib(0, 2);
             index = distrib(gen);
-            newRoot = halfOptions[index][0];
+            newRoot = (lastRoot + halfOptions[index][0]) % 12;
             newQuality = halfOptions[index][1];
         }
         else{
             std::uniform_int_distribution<int> distrib(0, 7);
             index = distrib(gen);
-            newRoot = fullOptions[index][0];
+            newRoot = (lastRoot + fullOptions[index][0]) % 12;
             newQuality = fullOptions[index][1];
         }
         chordSequence.push_back({newRoot, newQuality});

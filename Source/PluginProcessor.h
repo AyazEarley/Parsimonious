@@ -89,7 +89,7 @@ private:
     static constexpr std::array<std::array<int, 2>, 4> minOptions
     {{
         {{ 0, DOM7}},
-        {{ 4, MINOR7}},
+        {{ 3, MAJOR7}},
         {{ 9, HALF7}},
         {{ 0, HALF7}} 
     }};
