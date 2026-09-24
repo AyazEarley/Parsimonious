@@ -99,9 +99,19 @@ void ParsimoniousAudioProcessorEditor::resized()
 void ParsimoniousAudioProcessorEditor::buttonClicked(juce::Button* button){
     if(button == &generateButton){
         int numBar = static_cast<int>(numBarsKnob.getValue());
-
-        std::vector<std::array<int, 4>> chords = audioProcessor.getChords();
-        lastGeneratedFile = audioProcessor.createMidiFile(chords);
+        
+        std::vector<std::array<int, 4>> chords;
+        std::vector<std::array<int, 3>> triads;
+        bool useTriads = audioProcessor.apvts.getRawParameterValue ("useTriads")->load() > 0.5f;
+        if(!useTriads){
+            chords = audioProcessor.getChords();
+            lastGeneratedFile = audioProcessor.createMidiFile(chords);
+        }
+        else{
+            triads = audioProcessor.getTriads();
+            lastGeneratedFile = audioProcessor.createMidiFileTriads(triads);
+        }
+        
 
         if (lastGeneratedFile.existsAsFile())
             dragArea.setText ("Drag me into your track!", juce::dontSendNotification);

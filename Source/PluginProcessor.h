@@ -56,8 +56,10 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
     std::vector<std::array<int, 4>> getChords ();
+    std::vector<std::array<int, 3>> getTriads ();
     double getHostTempo();
     juce::File createMidiFile (std::vector<std::array<int, 4>> chords); 
+    juce::File createMidiFileTriads (std::vector<std::array<int, 3>> chords); 
 
     juce::AudioProcessorValueTreeState apvts;
 
@@ -69,6 +71,7 @@ private:
 
     std::atomic<float>* barsParam = nullptr;
     std::atomic<float>* chordsPerBarParam = nullptr;
+    std::atomic<float>* useTriadsParam = nullptr;
 
 
     static constexpr int MAJOR7 = 1;
@@ -76,6 +79,9 @@ private:
     static constexpr int DOM7 = 3;
     static constexpr int HALF7 = 4;
     static constexpr int FULL7 = 5;
+
+    static constexpr int MAJOR_TRIAD = 6;
+    static constexpr int MINOR_TRIAD = 7;
 
 
     static constexpr std::array<std::array<int, 2>, 4> majOptions
@@ -129,6 +135,26 @@ private:
         { HALF7,  { 0, 3, 6, 10 } },
         { FULL7,  { 0, 3, 6, 9 } },
     };
+
+    std::unordered_map<int, std::array<int, 3>> triadIntervals {
+        { MAJOR_TRIAD, { 0, 4, 7} },
+        { MINOR_TRIAD, { 0, 3, 7} },
+    };
+
+    static constexpr std::array<std::array<int, 2>, 4> majTriadOptions
+    {{
+        {{ 4, MINOR_TRIAD}},
+        {{ 9, MINOR_TRIAD}},
+        {{ 0, MINOR_TRIAD}},
+    }};
+
+    static constexpr std::array<std::array<int, 2>, 4> minTriadOptions
+    {{
+        {{ 3, MAJOR_TRIAD}},
+        {{ 8, MAJOR_TRIAD}},
+        {{ 0, MAJOR_TRIAD}},
+    }};
+    
 
 
 };

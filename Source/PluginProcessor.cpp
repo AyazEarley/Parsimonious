@@ -27,6 +27,7 @@ ParsimoniousAudioProcessor::ParsimoniousAudioProcessor()
 {
     barsParam = apvts.getRawParameterValue ("bars");
     chordsPerBarParam = apvts.getRawParameterValue ("chordsPerBar");
+    useTriadsParam = apvts.getRawParameterValue ("useTriads");
 
 
     
@@ -45,6 +46,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout ParsimoniousAudioProcessor::
         juce::ParameterID { "chordsPerBar", 1 },
         "chordsPerBar",
         1, 8, 2));
+
+    params.push_back (std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID { "useTriads", 1 },
+        "useTriads",
+        false));
 
     return { params.begin(), params.end() };
 }
@@ -319,6 +325,111 @@ juce::File ParsimoniousAudioProcessor::createMidiFile (std::vector<std::array<in
     for (int i = 0; i < (int) chords.size(); i++)
     {
         for (int j = 0; j < 4; j++)
+        {
+            sequence.addEvent (juce::MidiMessage::noteOn  (1, chords[i][j] + 60, (juce::uint8) 100), currentTime);
+            sequence.addEvent (juce::MidiMessage::noteOff (1, chords[i][j] + 60), currentTime + chordLength);
+        }
+
+        currentTime += chordLength;
+    }
+
+    sequence.updateMatchedPairs();
+    sequence.sort();
+
+    juce::MidiFile midiFile;
+    midiFile.setTicksPerQuarterNote (ticksPerQuarterNote);
+    midiFile.addTrack (sequence);
+
+    juce::File tempDir = juce::File::getSpecialLocation (juce::File::tempDirectory);
+    juce::File midiOut = tempDir.getChildFile ("GeneratedChords_" + juce::String (juce::Time::currentTimeMillis()))
+                                 .withFileExtension (".mid");
+
+    if (auto stream = std::make_unique<juce::FileOutputStream> (midiOut))
+    {
+        stream->setPosition (0);
+        stream->truncate();
+        midiFile.writeTo (*stream);
+    }
+
+    return midiOut;
+}
+
+
+std::vector<std::array<int, 3>> ParsimoniousAudioProcessor::getTriads (){
+    int bars = static_cast<int> (barsParam->load());
+    int chordsPerBar = static_cast<int> (chordsPerBarParam->load());
+
+    int numChords = bars * chordsPerBar;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::vector<int> choices = {MAJOR_TRIAD, MINOR_TRIAD};
+    std::uniform_int_distribution<std::size_t> dist(0, choices.size() - 1);
+    std::size_t randomIndex = dist(gen);
+
+    int quality = choices[randomIndex];
+
+
+    std::uniform_int_distribution<int> distrib(0, 11);
+    int root = distrib(gen);
+
+    std::array<int, 2> initialChord = {root, quality};
+    std::vector<std::array<int, 2>> chordSequence;
+    chordSequence.push_back(initialChord);
+    
+    for(int i = 0; i < numChords - 1; i++){
+        int lastQuality = chordSequence.back()[1];
+        int lastRoot = chordSequence.back()[0];
+        
+        int newQuality = MAJOR_TRIAD; //Placeholder
+        int newRoot = 0;
+
+        int index = 0; //pre declared for random number generation
+        if (lastQuality == MAJOR_TRIAD){
+            std::uniform_int_distribution<int> distrib(0, 2);
+            index = distrib(gen);
+            newRoot = (lastRoot + majTriadOptions[index][0]) % 12;
+            newQuality = majTriadOptions[index][1];
+        }
+        else{
+            std::uniform_int_distribution<int> distrib(0, 2);
+            index = distrib(gen);
+            newRoot = (lastRoot + minTriadOptions[index][0]) % 12;
+            newQuality = minTriadOptions[index][1];
+        }
+        chordSequence.push_back({newRoot, newQuality});
+    }
+
+    std::vector<std::array<int, 3>> retChords;
+    for(int i = 0; i <numChords; i++){
+        std::array<int, 3> intervals = triadIntervals.at(chordSequence[i][1]);
+        for(int j = 0; j < 3; j++){
+            intervals[j] = (intervals[j] + chordSequence[i][0]) % 12;
+        }
+        std::sort(intervals.begin(), intervals.end());
+        retChords.push_back(intervals);
+    }
+    return retChords;
+}
+
+juce::File ParsimoniousAudioProcessor::createMidiFileTriads (std::vector<std::array<int, 3>> chords)
+{
+    juce::MidiMessageSequence sequence;
+    int chordsPerBar = static_cast<int> (chordsPerBarParam->load());
+
+    const int ticksPerQuarterNote = 960;
+    const int beatsPerBar = 4;
+
+    jassert (chordsPerBar > 0);
+
+    double ticksPerBar = ticksPerQuarterNote * beatsPerBar;
+    double chordLength = ticksPerBar / chordsPerBar;
+
+    double currentTime = 0.0;
+
+    for (int i = 0; i < (int) chords.size(); i++)
+    {
+        for (int j = 0; j < 3; j++)
         {
             sequence.addEvent (juce::MidiMessage::noteOn  (1, chords[i][j] + 60, (juce::uint8) 100), currentTime);
             sequence.addEvent (juce::MidiMessage::noteOff (1, chords[i][j] + 60), currentTime + chordLength);
