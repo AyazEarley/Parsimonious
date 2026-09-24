@@ -63,6 +63,8 @@ public:
 
     juce::AudioProcessorValueTreeState apvts;
 
+    int seededRandom (int lo, int hi);
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParsimoniousAudioProcessor)
@@ -73,6 +75,8 @@ private:
     std::atomic<float>* chordsPerBarParam = nullptr;
     std::atomic<float>* useTriadsParam = nullptr;
 
+    std::atomic<float>* userSeedParam = nullptr;
+    uint32_t currentSeed = 200; 
 
     static constexpr int MAJOR7 = 1;
     static constexpr int MINOR7 = 2;

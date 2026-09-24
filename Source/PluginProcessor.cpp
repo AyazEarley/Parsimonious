@@ -28,9 +28,7 @@ ParsimoniousAudioProcessor::ParsimoniousAudioProcessor()
     barsParam = apvts.getRawParameterValue ("bars");
     chordsPerBarParam = apvts.getRawParameterValue ("chordsPerBar");
     useTriadsParam = apvts.getRawParameterValue ("useTriads");
-
-
-    
+    userSeedParam = apvts.getRawParameterValue ("userSeed");
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout ParsimoniousAudioProcessor::createParameterLayout()
@@ -51,6 +49,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout ParsimoniousAudioProcessor::
         juce::ParameterID { "useTriads", 1 },
         "useTriads",
         false));
+
+    params.push_back (std::make_unique<juce::AudioParameterInt>(
+        juce::ParameterID { "userSeed", 1 },
+        "userSeed",
+        1, 12, 7));
 
     return { params.begin(), params.end() };
 }
@@ -185,6 +188,13 @@ void ParsimoniousAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     }
 }
 
+
+int ParsimoniousAudioProcessor::seededRandom(int lo, int hi) {
+    currentSeed = currentSeed * 1664525u + 1013904223u;
+    uint32_t range = (uint32_t)(hi - lo + 1);
+    return lo + (int)((currentSeed >> 16) % range);
+}
+
 //==============================================================================
 bool ParsimoniousAudioProcessor::hasEditor() const
 {
@@ -238,17 +248,16 @@ std::vector<std::array<int, 4>> ParsimoniousAudioProcessor::getChords (){
 
     int numChords = bars * chordsPerBar;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    int userSeedTemp = static_cast<int> (userSeedParam->load());
+    currentSeed = userSeedTemp;
+
     std::vector<int> choices = {MAJOR7, MINOR7, DOM7, HALF7, FULL7};
-    std::uniform_int_distribution<std::size_t> dist(0, choices.size() - 1);
-    std::size_t randomIndex = dist(gen);
+
+    int randomIndex = seededRandom(0, choices.size() - 1);
 
     int quality = choices[randomIndex];
 
-
-    std::uniform_int_distribution<int> distrib(0, 11);
-    int root = distrib(gen);
+    int root = seededRandom(0,11);
 
     std::array<int, 2> initialChord = {root, quality};
     std::vector<std::array<int, 2>> chordSequence;
@@ -263,32 +272,28 @@ std::vector<std::array<int, 4>> ParsimoniousAudioProcessor::getChords (){
 
         int index = 0; //pre declared for random number generation
         if (lastQuality == MAJOR7){
-            std::uniform_int_distribution<int> distrib(0, 3);
-            index = distrib(gen);
+            index = seededRandom(0, 3);
             newRoot = (lastRoot + majOptions[index][0]) % 12;
             newQuality = majOptions[index][1];
         }
         else if (lastQuality == MINOR7){
-            std::uniform_int_distribution<int> distrib(0, 3);
-            index = distrib(gen);
+            index = index = seededRandom(0, 3);
             newRoot = (lastRoot + minOptions[index][0]) % 12;
             newQuality = minOptions[index][1];
         }
         else if (lastQuality == DOM7){
-            std::uniform_int_distribution<int> distrib(0, 3);
-            index = distrib(gen);
+            index = index = seededRandom(0, 3);
             newRoot = (lastRoot + domOptions[index][0]) % 12;
             newQuality = domOptions[index][1];
         }
         else if (lastQuality == HALF7){
-            std::uniform_int_distribution<int> distrib(0, 2);
-            index = distrib(gen);
+            index = index = seededRandom(0, 2);
             newRoot = (lastRoot + halfOptions[index][0]) % 12;
             newQuality = halfOptions[index][1];
         }
         else{
             std::uniform_int_distribution<int> distrib(0, 7);
-            index = distrib(gen);
+            index = index = seededRandom(0, 7);
             newRoot = (lastRoot + fullOptions[index][0]) % 12;
             newQuality = fullOptions[index][1];
         }
@@ -361,17 +366,16 @@ std::vector<std::array<int, 3>> ParsimoniousAudioProcessor::getTriads (){
 
     int numChords = bars * chordsPerBar;
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
+    int userSeedTemp = static_cast<int> (userSeedParam->load());
+    currentSeed = userSeedTemp;
+
     std::vector<int> choices = {MAJOR_TRIAD, MINOR_TRIAD};
-    std::uniform_int_distribution<std::size_t> dist(0, choices.size() - 1);
-    std::size_t randomIndex = dist(gen);
+
+    int randomIndex = seededRandom(0, choices.size() - 1);
 
     int quality = choices[randomIndex];
 
-
-    std::uniform_int_distribution<int> distrib(0, 11);
-    int root = distrib(gen);
+    int root = seededRandom(0,11);
 
     std::array<int, 2> initialChord = {root, quality};
     std::vector<std::array<int, 2>> chordSequence;
@@ -386,14 +390,12 @@ std::vector<std::array<int, 3>> ParsimoniousAudioProcessor::getTriads (){
 
         int index = 0; //pre declared for random number generation
         if (lastQuality == MAJOR_TRIAD){
-            std::uniform_int_distribution<int> distrib(0, 2);
-            index = distrib(gen);
+            index = seededRandom(0,2);
             newRoot = (lastRoot + majTriadOptions[index][0]) % 12;
             newQuality = majTriadOptions[index][1];
         }
         else{
-            std::uniform_int_distribution<int> distrib(0, 2);
-            index = distrib(gen);
+            index = seededRandom(0,2);
             newRoot = (lastRoot + minTriadOptions[index][0]) % 12;
             newQuality = minTriadOptions[index][1];
         }
