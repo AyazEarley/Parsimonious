@@ -80,5 +80,8 @@ private:
     juce::TextEditor intBox;
     void validateAndClampInput();
 
+    juce::ToggleButton triadsCheck;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> useTriadsAttachment;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParsimoniousAudioProcessorEditor)
 };

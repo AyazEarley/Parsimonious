@@ -71,6 +71,12 @@ ParsimoniousAudioProcessorEditor::ParsimoniousAudioProcessorEditor (Parsimonious
     addAndMakeVisible(randomButton);
     randomButton.setButtonText("random seed");
     randomButton.addListener(this);
+
+    triadsCheck.setButtonText("Use Triads");
+    addAndMakeVisible(triadsCheck);
+
+    useTriadsAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+        audioProcessor.apvts, "useTriads", triadsCheck);
 }
 
 ParsimoniousAudioProcessorEditor::~ParsimoniousAudioProcessorEditor()
@@ -119,6 +125,8 @@ void ParsimoniousAudioProcessorEditor::resized()
     area.removeFromLeft (10);
 
     randomButton.setBounds (area.removeFromLeft (buttonWidth).withSizeKeepingCentre (buttonWidth, 40));
+
+    triadsCheck.setBounds(10, 10, 200, 24);
 }
 
 void ParsimoniousAudioProcessorEditor::buttonClicked(juce::Button* button){
