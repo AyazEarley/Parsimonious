@@ -53,7 +53,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout ParsimoniousAudioProcessor::
     params.push_back (std::make_unique<juce::AudioParameterInt>(
         juce::ParameterID { "userSeed", 1 },
         "userSeed",
-        1, 12, 7));
+        1, 999, 7));
 
     return { params.begin(), params.end() };
 }

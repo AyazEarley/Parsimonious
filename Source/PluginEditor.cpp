@@ -47,7 +47,7 @@ ParsimoniousAudioProcessorEditor::ParsimoniousAudioProcessorEditor (Parsimonious
     chordsPerBarAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
     audioProcessor.apvts, "chordsPerBar", chordsPerBarKnob);
 
-    setSize (400, 200);
+    setSize (520, 260);
 
     dragArea.setText ("No file yet", juce::dontSendNotification);
     dragArea.setJustificationType (juce::Justification::centred);
@@ -58,6 +58,19 @@ ParsimoniousAudioProcessorEditor::ParsimoniousAudioProcessorEditor (Parsimonious
     {
         return lastGeneratedFile;
     };
+
+    addAndMakeVisible(intBox);
+    intBox.setInputRestrictions(3, "0123456789");
+
+    intBox.setText("0");
+    intBox.setJustification(juce::Justification::centred);
+
+    intBox.onReturnKey = [this] { validateAndClampInput(); };
+    intBox.onFocusLost = [this] { validateAndClampInput(); };
+
+    addAndMakeVisible(randomButton);
+    randomButton.setButtonText("random seed");
+    randomButton.addListener(this);
 }
 
 ParsimoniousAudioProcessorEditor::~ParsimoniousAudioProcessorEditor()
@@ -79,10 +92,19 @@ void ParsimoniousAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced (10);
 
-    title.setBounds(5,5, 200, 30);
+    // Title strip across the top
+    title.setBounds (area.removeFromTop (40));
+    area.removeFromTop (10);
 
-    const int knobWidth = 100;
+    // Reserve a strip at the bottom for the drag area first,
+    // so nothing else can encroach on it
+    dragArea.setBounds (area.removeFromBottom (50));
+    area.removeFromBottom (10);
+
+    // Everything else lives in the remaining middle row
+    const int knobWidth   = 100;
     const int buttonWidth = 80;
+    const int intBoxWidth = 50;
 
     numBarsKnob.setBounds (area.removeFromLeft (knobWidth));
     area.removeFromLeft (10);
@@ -93,7 +115,10 @@ void ParsimoniousAudioProcessorEditor::resized()
     generateButton.setBounds (area.removeFromLeft (buttonWidth).withSizeKeepingCentre (buttonWidth, 40));
     area.removeFromLeft (10);
 
-    dragArea.setBounds (area);
+    intBox.setBounds (area.removeFromLeft (intBoxWidth).withSizeKeepingCentre (intBoxWidth, 25));
+    area.removeFromLeft (10);
+
+    randomButton.setBounds (area.removeFromLeft (buttonWidth).withSizeKeepingCentre (buttonWidth, 40));
 }
 
 void ParsimoniousAudioProcessorEditor::buttonClicked(juce::Button* button){
@@ -117,5 +142,28 @@ void ParsimoniousAudioProcessorEditor::buttonClicked(juce::Button* button){
             dragArea.setText ("Drag me into your track!", juce::dontSendNotification);
         else
             dragArea.setText ("Generation failed", juce::dontSendNotification);
+    }
+    else if(button == &randomButton){
+        int seed = randomSeedGenerator.nextInt(1000); // 0-999
+        intBox.setText(juce::String(seed), juce::dontSendNotification);
+        validateAndClampInput(); // pushes the new value into the "userSeed" parameter
+    }
+}
+
+void ParsimoniousAudioProcessorEditor::validateAndClampInput()
+{
+    auto text = intBox.getText();
+    int value = text.getIntValue();
+
+    value = juce::jlimit(1, 999, value);
+
+    intBox.setText(juce::String(value), juce::dontSendNotification);
+
+    if (auto* param = audioProcessor.apvts.getParameter("userSeed"))
+    {
+        auto range = audioProcessor.apvts.getParameterRange("userSeed");
+        float normalized = range.convertTo0to1(static_cast<float>(value));
+
+        param->setValueNotifyingHost(normalized);
     }
 }

@@ -75,6 +75,10 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> chordsPerBarAttachment;
 
     juce::File lastGeneratedFile;
+    juce::TextButton randomButton;
+    juce::Random randomSeedGenerator;
+    juce::TextEditor intBox;
+    void validateAndClampInput();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParsimoniousAudioProcessorEditor)
 };
