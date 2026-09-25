@@ -195,6 +195,86 @@ int ParsimoniousAudioProcessor::seededRandom(int lo, int hi) {
     return lo + (int)((currentSeed >> 16) % range);
 }
 
+int makeState (int quality, int root)
+{
+    return (quality - 1) * 12 + root;
+}
+
+int stateQuality (int state) { return state / 12 + 1; }
+int stateRoot    (int state) { return state % 12; }
+
+std::vector<int> ParsimoniousAudioProcessor::neighbors (int state)
+{
+    int quality = stateQuality (state);
+    int root    = stateRoot (state);
+
+    std::vector<int> result;
+
+    if (quality == MAJOR7)
+        for (auto& opt : majOptions)
+            result.push_back (makeState (opt[1], (root + opt[0]) % 12));
+    else if (quality == MINOR7)
+        for (auto& opt : minOptions)
+            result.push_back (makeState (opt[1], (root + opt[0]) % 12));
+    else if (quality == DOM7)
+        for (auto& opt : domOptions)
+            result.push_back (makeState (opt[1], (root + opt[0]) % 12));
+    else if (quality == HALF7)
+        for (auto& opt : halfOptions)
+            result.push_back (makeState (opt[1], (root + opt[0]) % 12));
+    else 
+        for (auto& opt : fullOptions)
+            result.push_back (makeState (opt[1], (root + opt[0]) % 12));
+
+    return result;
+}
+
+std::vector<std::vector<bool>> ParsimoniousAudioProcessor::buildCanReach (int home, int maxSteps)
+{
+    std::vector<std::vector<bool>> canReach (maxSteps + 1, std::vector<bool> (60, false));
+
+    canReach[0][home] = true;   // base case: can_reach[0] = {home}
+
+    for (int r = 1; r <= maxSteps; ++r)
+    {
+        for (int node = 0; node < 60; ++node)          // "for node, neighbors in graph.items()"
+        {
+            for (int n : neighbors (node))              // "for n in neighbors"
+            {
+                if (canReach[r - 1][n])                  // "if n in can_reach[r-1]"
+                {
+                    canReach[r][node] = true;             // "can_reach[r].add(node)"
+                    break;                                 // found one, no need to check the rest
+                }
+            }
+        }
+    }
+
+    return canReach;
+}
+
+std::vector<int> ParsimoniousAudioProcessor::generateLoop (int start, int nSteps, const std::vector<std::vector<bool>>& canReach)
+{
+    std::vector<int> sequence { start };
+    int current = start;
+
+
+    for (int i = 1; i <= nSteps; ++i)
+    {
+        int remainingAfter = nSteps - i;
+
+        std::vector<int> options;
+        for (int next : neighbors (current))
+            if (canReach[remainingAfter][next])
+                options.push_back (next);
+
+        current = options[seededRandom(0, options.size() - 1)];
+        sequence.push_back (current);
+    }
+
+    return sequence;
+}
+
 //==============================================================================
 bool ParsimoniousAudioProcessor::hasEditor() const
 {
@@ -258,6 +338,29 @@ std::vector<std::array<int, 4>> ParsimoniousAudioProcessor::getChords (){
     int quality = choices[randomIndex];
 
     int root = seededRandom(0,11);
+    
+    if(true){ //still implimenting the actual boolean option
+        int home = makeState(quality, root);
+        std::vector<std::vector<bool>> canReach = buildCanReach(home, numChords);
+        std::vector<int> sequence = generateLoop (home, numChords, canReach);
+        sequence.pop_back();
+
+        std::vector<std::array<int, 4>> retChords;
+        for(int i = 0; i < sequence.size(); i++){
+            int state = sequence[i];
+            int quality = stateQuality(state);
+            int root = stateRoot(state);
+
+            std::array<int, 4> pitches;
+            for(int j = 0; j < 4; j++){
+                int pitch = chordIntervals.at(quality)[j];
+                pitch = (pitch + root) % 12;
+                pitches[j] = pitch;
+            }
+            retChords.push_back(pitches);
+        }
+        return retChords;
+    }
 
     std::array<int, 2> initialChord = {root, quality};
     std::vector<std::array<int, 2>> chordSequence;

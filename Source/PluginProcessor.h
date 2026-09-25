@@ -71,6 +71,10 @@ private:
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
+    std::vector<int> neighbors (int state);
+    std::vector<std::vector<bool>> buildCanReach (int home, int maxSteps);
+    std::vector<int> generateLoop (int start, int nSteps, const std::vector<std::vector<bool>>& canReach);
+
     std::atomic<float>* barsParam = nullptr;
     std::atomic<float>* chordsPerBarParam = nullptr;
     std::atomic<float>* useTriadsParam = nullptr;
@@ -92,7 +96,7 @@ private:
     {{
         {{ 9, MINOR7}},
         {{ 4, MINOR7}},
-        {{ 0, MINOR7}},
+        {{ 0, DOM7}},
         {{ 1, HALF7}} 
     }};
 
