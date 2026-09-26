@@ -1,6 +1,8 @@
 #pragma once
 
 #include "PluginProcessor.h"
+#include "ModularMonoLookAndFeel.h"
+#include "HeaderTicks.h"
 
 //==============================================================================
 // Custom label that knows how to start an external file drag
@@ -67,6 +69,10 @@ private:
     juce::TextButton generateButton;
     juce::Label title;
     MidiDragLabel dragArea;
+
+    ModularMonoLookAndFeel modularMonoLookAndFeel;
+    juce::Label numBarsLabel, chordsPerBarLabel;
+    HeaderTicks headerTicks;
 
     juce::Slider numBarsKnob;
     juce::Slider chordsPerBarKnob;
