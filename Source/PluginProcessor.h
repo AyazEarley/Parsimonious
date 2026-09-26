@@ -58,6 +58,9 @@ public:
     juce::AudioProcessorValueTreeState apvts;
 
     int seededRandom (int lo, int hi);
+
+    void cleanupOldMidiFiles (int maxAgeInSeconds = 3600);
+    juce::File lastGeneratedMidiFile;
     
 private:
     //==============================================================================
