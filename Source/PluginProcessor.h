@@ -1,11 +1,3 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include <JuceHeader.h>
@@ -61,6 +53,8 @@ public:
     juce::File createMidiFile (std::vector<std::array<int, 4>> chords); 
     juce::File createMidiFileTriads (std::vector<std::array<int, 3>> chords); 
 
+    
+
     juce::AudioProcessorValueTreeState apvts;
 
     int seededRandom (int lo, int hi);
@@ -75,9 +69,14 @@ private:
     std::vector<std::vector<bool>> buildCanReach (int home, int maxSteps);
     std::vector<int> generateLoop (int start, int nSteps, const std::vector<std::vector<bool>>& canReach);
 
+    std::vector<int> neighborsTriad (int state);
+    std::vector<std::vector<bool>> buildCanReachTriads (int home, int maxSteps);
+    std::vector<int> generateLoopTriads (int start, int nSteps, const std::vector<std::vector<bool>>& canReach);
+
     std::atomic<float>* barsParam = nullptr;
     std::atomic<float>* chordsPerBarParam = nullptr;
     std::atomic<float>* useTriadsParam = nullptr;
+    std::atomic<float>* forceLoopParam = nullptr;
 
     std::atomic<float>* userSeedParam = nullptr;
     uint32_t currentSeed = 200; 
@@ -90,6 +89,10 @@ private:
 
     static constexpr int MAJOR_TRIAD = 6;
     static constexpr int MINOR_TRIAD = 7;
+
+    int makeStateTriad (int quality, int root) const;
+    int stateQualityTriad (int state) const;
+    int stateRootTriad (int state) const;
 
 
     static constexpr std::array<std::array<int, 2>, 4> majOptions
@@ -149,20 +152,17 @@ private:
         { MINOR_TRIAD, { 0, 3, 7} },
     };
 
-    static constexpr std::array<std::array<int, 2>, 4> majTriadOptions
+    static constexpr std::array<std::array<int, 2>, 3> majTriadOptions
     {{
         {{ 4, MINOR_TRIAD}},
         {{ 9, MINOR_TRIAD}},
         {{ 0, MINOR_TRIAD}},
     }};
 
-    static constexpr std::array<std::array<int, 2>, 4> minTriadOptions
+    static constexpr std::array<std::array<int, 2>, 3> minTriadOptions
     {{
         {{ 3, MAJOR_TRIAD}},
         {{ 8, MAJOR_TRIAD}},
         {{ 0, MAJOR_TRIAD}},
     }};
-    
-
-
 };

@@ -77,6 +77,13 @@ ParsimoniousAudioProcessorEditor::ParsimoniousAudioProcessorEditor (Parsimonious
 
     useTriadsAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         audioProcessor.apvts, "useTriads", triadsCheck);
+
+    loopCheck.setButtonText("Force Loop");
+    addAndMakeVisible(loopCheck);
+
+    forceLoopAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+        audioProcessor.apvts, "forceLoop", loopCheck);
+
 }
 
 ParsimoniousAudioProcessorEditor::~ParsimoniousAudioProcessorEditor()
@@ -127,6 +134,7 @@ void ParsimoniousAudioProcessorEditor::resized()
     randomButton.setBounds (area.removeFromLeft (buttonWidth).withSizeKeepingCentre (buttonWidth, 40));
 
     triadsCheck.setBounds(10, 10, 200, 24);
+    loopCheck.setBounds(10, 40, 100, 24);
 }
 
 void ParsimoniousAudioProcessorEditor::buttonClicked(juce::Button* button){
@@ -142,7 +150,14 @@ void ParsimoniousAudioProcessorEditor::buttonClicked(juce::Button* button){
         }
         else{
             triads = audioProcessor.getTriads();
-            lastGeneratedFile = audioProcessor.createMidiFileTriads(triads);
+            if(triads.empty()){
+                dragArea.setText ("Cannot generate triad loops of odd length!", juce::dontSendNotification);
+                return;
+            }
+            else{
+                lastGeneratedFile = audioProcessor.createMidiFileTriads(triads);
+            }
+            
         }
         
 

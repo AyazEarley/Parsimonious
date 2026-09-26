@@ -83,5 +83,8 @@ private:
     juce::ToggleButton triadsCheck;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> useTriadsAttachment;
 
+    juce::ToggleButton loopCheck;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> forceLoopAttachment;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParsimoniousAudioProcessorEditor)
 };

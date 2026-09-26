@@ -1,11 +1,3 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -29,6 +21,7 @@ ParsimoniousAudioProcessor::ParsimoniousAudioProcessor()
     chordsPerBarParam = apvts.getRawParameterValue ("chordsPerBar");
     useTriadsParam = apvts.getRawParameterValue ("useTriads");
     userSeedParam = apvts.getRawParameterValue ("userSeed");
+    forceLoopParam = apvts.getRawParameterValue ("forceLoop");
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout ParsimoniousAudioProcessor::createParameterLayout()
@@ -54,6 +47,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout ParsimoniousAudioProcessor::
         juce::ParameterID { "userSeed", 1 },
         "userSeed",
         1, 999, 7));
+
+    params.push_back (std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID { "forceLoop", 1 },
+        "forceLoop",
+        false));
 
     return { params.begin(), params.end() };
 }
@@ -203,6 +201,22 @@ int makeState (int quality, int root)
 int stateQuality (int state) { return state / 12 + 1; }
 int stateRoot    (int state) { return state % 12; }
 
+int ParsimoniousAudioProcessor::makeStateTriad (int quality, int root) const
+{
+    int localQuality = (quality == MAJOR_TRIAD) ? 0 : 1;
+    return localQuality * 12 + root;
+}
+
+int ParsimoniousAudioProcessor::stateQualityTriad (int state) const
+{
+    return (state / 12 == 0) ? MAJOR_TRIAD : MINOR_TRIAD;
+}
+
+int ParsimoniousAudioProcessor::stateRootTriad (int state) const
+{
+    return state % 12;
+}
+
 std::vector<int> ParsimoniousAudioProcessor::neighbors (int state)
 {
     int quality = stateQuality (state);
@@ -237,14 +251,14 @@ std::vector<std::vector<bool>> ParsimoniousAudioProcessor::buildCanReach (int ho
 
     for (int r = 1; r <= maxSteps; ++r)
     {
-        for (int node = 0; node < 60; ++node)          // "for node, neighbors in graph.items()"
+        for (int node = 0; node < 60; ++node)
         {
-            for (int n : neighbors (node))              // "for n in neighbors"
+            for (int n : neighbors (node))
             {
-                if (canReach[r - 1][n])                  // "if n in can_reach[r-1]"
+                if (canReach[r - 1][n])
                 {
-                    canReach[r][node] = true;             // "can_reach[r].add(node)"
-                    break;                                 // found one, no need to check the rest
+                    canReach[r][node] = true;
+                    break;
                 }
             }
         }
@@ -269,6 +283,70 @@ std::vector<int> ParsimoniousAudioProcessor::generateLoop (int start, int nSteps
                 options.push_back (next);
 
         current = options[seededRandom(0, options.size() - 1)];
+        sequence.push_back (current);
+    }
+
+    return sequence;
+}
+
+std::vector<int> ParsimoniousAudioProcessor::neighborsTriad (int state)
+{
+    int quality = stateQualityTriad (state);
+    int root    = stateRootTriad (state);
+
+    std::vector<int> result;
+
+    if (quality == MAJOR_TRIAD)
+        for (auto& opt : majTriadOptions)
+            result.push_back (makeStateTriad (opt[1], (root + opt[0]) % 12));
+    else
+        for (auto& opt : minTriadOptions)
+            result.push_back (makeStateTriad (opt[1], (root + opt[0]) % 12));
+
+    return result;
+}
+
+std::vector<std::vector<bool>> ParsimoniousAudioProcessor::buildCanReachTriads (int home, int maxSteps)
+{
+    const int stateSpace = 24; // 2 qualities x 12 roots
+
+    std::vector<std::vector<bool>> canReach (maxSteps + 1, std::vector<bool> (stateSpace, false));
+
+    canReach[0][home] = true;
+
+    for (int r = 1; r <= maxSteps; ++r)
+    {
+        for (int node = 0; node < stateSpace; ++node)
+        {
+            for (int n : neighborsTriad (node))
+            {
+                if (canReach[r - 1][n])
+                {
+                    canReach[r][node] = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    return canReach;
+}
+
+std::vector<int> ParsimoniousAudioProcessor::generateLoopTriads (int start, int nSteps, const std::vector<std::vector<bool>>& canReach)
+{
+    std::vector<int> sequence { start };
+    int current = start;
+
+    for (int i = 1; i <= nSteps; ++i)
+    {
+        int remainingAfter = nSteps - i;
+
+        std::vector<int> options;
+        for (int next : neighborsTriad (current))
+            if (canReach[remainingAfter][next])
+                options.push_back (next);
+
+        current = options[seededRandom (0, options.size() - 1)];
         sequence.push_back (current);
     }
 
@@ -339,7 +417,7 @@ std::vector<std::array<int, 4>> ParsimoniousAudioProcessor::getChords (){
 
     int root = seededRandom(0,11);
     
-    if(true){ //still implimenting the actual boolean option
+    if(static_cast<bool> (forceLoopParam->load())){
         int home = makeState(quality, root);
         std::vector<std::vector<bool>> canReach = buildCanReach(home, numChords);
         std::vector<int> sequence = generateLoop (home, numChords, canReach);
@@ -469,6 +547,11 @@ std::vector<std::array<int, 3>> ParsimoniousAudioProcessor::getTriads (){
 
     int numChords = bars * chordsPerBar;
 
+    bool forceLoop = static_cast<bool> (forceLoopParam->load());
+
+    if (forceLoop && numChords % 2 != 0)
+        return {};
+
     int userSeedTemp = static_cast<int> (userSeedParam->load());
     currentSeed = userSeedTemp;
 
@@ -479,6 +562,30 @@ std::vector<std::array<int, 3>> ParsimoniousAudioProcessor::getTriads (){
     int quality = choices[randomIndex];
 
     int root = seededRandom(0,11);
+
+    if (forceLoop)
+    {
+        int home = makeStateTriad (quality, root);
+        std::vector<std::vector<bool>> canReach = buildCanReachTriads (home, numChords);
+        std::vector<int> sequence = generateLoopTriads (home, numChords, canReach);
+        sequence.pop_back();
+
+        std::vector<std::array<int, 3>> retChords;
+        for (int i = 0; i < (int) sequence.size(); i++)
+        {
+            int state = sequence[i];
+            int q = stateQualityTriad (state);
+            int r = stateRootTriad (state);
+
+            std::array<int, 3> intervals = triadIntervals.at (q);
+            for (int j = 0; j < 3; j++)
+                intervals[j] = (intervals[j] + r) % 12;
+
+            std::sort (intervals.begin(), intervals.end());
+            retChords.push_back (intervals);
+        }
+        return retChords;
+    }
 
     std::array<int, 2> initialChord = {root, quality};
     std::vector<std::array<int, 2>> chordSequence;
@@ -491,7 +598,7 @@ std::vector<std::array<int, 3>> ParsimoniousAudioProcessor::getTriads (){
         int newQuality = MAJOR_TRIAD; //Placeholder
         int newRoot = 0;
 
-        int index = 0; //pre declared for random number generation
+        int index = 0;
         if (lastQuality == MAJOR_TRIAD){
             index = seededRandom(0,2);
             newRoot = (lastRoot + majTriadOptions[index][0]) % 12;
