@@ -4,9 +4,7 @@
 
 #include <unordered_map>
 #include <array>
-//==============================================================================
-/**
-*/
+
 class ParsimoniousAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -63,7 +61,6 @@ public:
     juce::File lastGeneratedMidiFile;
     
 private:
-    //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParsimoniousAudioProcessor)
 
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

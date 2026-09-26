@@ -45,12 +45,19 @@ public:
         if (filled)
         {
             auto fillBounds = bounds.reduced (1.0f);
+
+            if (isButtonDown)
+            {
+                g.setColour (line);
+                g.fillRoundedRectangle (fillBounds, 2.0f);
+            }
+
             g.setColour (juce::Colours::black);
-g.drawRoundedRectangle (fillBounds, 2.0f, 1.5f);
+            g.drawRoundedRectangle (fillBounds, 2.0f, 1.5f);
         }
         else
         {
-            g.setColour (background);
+            g.setColour (isButtonDown ? line : background);
             g.fillRoundedRectangle (bounds, 2.0f);
             g.setColour (isMouseOverButton ? ink : ink.withAlpha (0.8f));
             g.drawRoundedRectangle (bounds.reduced (0.5f), 2.0f, 1.0f);

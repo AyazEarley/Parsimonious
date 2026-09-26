@@ -31,7 +31,7 @@
         //addAndMakeVisible(headerTicks);
 
         addAndMakeVisible(dragArea);
-        dragArea.setText ("drag me into your track", juce::dontSendNotification);
+        dragArea.setText ("no file yet", juce::dontSendNotification);
         dragArea.setJustificationType (juce::Justification::centred);
         dragArea.setColour (juce::Label::backgroundColourId, modularMonoLookAndFeel.background);
         dragArea.setColour (juce::Label::outlineColourId, modularMonoLookAndFeel.line);
@@ -78,6 +78,8 @@
         intBox.setJustification(juce::Justification::centred);
         intBox.onReturnKey = [this] { validateAndClampInput(); };
         intBox.onFocusLost = [this] { validateAndClampInput(); };
+        const int topIndent = juce::jmax (0, (intBox.getHeight() - (int) std::ceil (intBox.getFont().getHeight())) / 2);
+        intBox.setIndents (4, topIndent - 1);
 
         addAndMakeVisible(randomButton);
         randomButton.setButtonText("random seed");
@@ -113,7 +115,7 @@
         auto area = getLocalBounds().reduced (14);
 
         auto header = area.removeFromTop (34);
-        auto checkboxArea = header.removeFromRight (80);
+        auto checkboxArea = header.removeFromRight (68);
         juce::FlexBox checkboxColumn;
         checkboxColumn.flexDirection = juce::FlexBox::Direction::column;
         checkboxColumn.justifyContent = juce::FlexBox::JustifyContent::spaceBetween;
@@ -143,10 +145,13 @@
         controlsBox.items.add (juce::FlexItem (generateButton).withMinWidth (100.0f).withHeight (32.0f).withFlex (1.0f));
         controlsBox.performLayout (knobRow.toFloat());
 
-        numBarsLabel.setBounds (numBarsKnob.getX(), numBarsKnob.getBottom() + 2, knobSize, 14);
+        numBarsKnob.setBounds (numBarsKnob.getBounds().translated (0, -3));
+        chordsPerBarKnob.setBounds (chordsPerBarKnob.getBounds().translated (0, -3));
+
+        numBarsLabel.setBounds (numBarsKnob.getX(), numBarsKnob.getBottom() + 1, knobSize, 14);
         const int chordsLabelWidth = 88;
         chordsPerBarLabel.setBounds (chordsPerBarKnob.getBounds().getCentreX() - chordsLabelWidth / 2,
-                                    chordsPerBarKnob.getBottom() + 2, chordsLabelWidth, 14);
+                                    chordsPerBarKnob.getBottom() + 1, chordsLabelWidth, 14);
 
         auto seedRow = juce::Rectangle<int> (generateButton.getX(), generateButton.getBottom() + gap,
                                             area.getRight() - generateButton.getX(), 30);
