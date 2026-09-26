@@ -161,7 +161,8 @@ bool ParsimoniousAudioProcessor::isBusesLayoutSupported (const BusesLayout& layo
 
 void ParsimoniousAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-
+    juce::ScopedNoDenormals noDenormals;
+    buffer.clear();
 }
 
 void ParsimoniousAudioProcessor::cleanupOldMidiFiles (int maxAgeInSeconds)
