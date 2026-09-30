@@ -98,8 +98,7 @@ double ParsimoniousAudioProcessor::getTailLengthSeconds() const
 
 int ParsimoniousAudioProcessor::getNumPrograms()
 {
-    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
+    return 1;
 }
 
 int ParsimoniousAudioProcessor::getCurrentProgram()
@@ -348,7 +347,6 @@ std::vector<int> ParsimoniousAudioProcessor::generateLoopTriads (int start, int 
     return sequence;
 }
 
-//==============================================================================
 bool ParsimoniousAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
@@ -551,11 +549,8 @@ std::vector<std::array<int, 3>> ParsimoniousAudioProcessor::getTriads (){
     currentSeed = userSeedTemp;
 
     std::vector<int> choices = {MAJOR_TRIAD, MINOR_TRIAD};
-
     int randomIndex = seededRandom(0, choices.size() - 1);
-
     int quality = choices[randomIndex];
-
     int root = seededRandom(0,11);
 
     if (forceLoop)

@@ -1,9 +1,7 @@
 #pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
 
-// Purely decorative: a row of flat vertical bars, sized to fit whatever
-// bounds it's given. Used to fill the header gap between the title and
-// the checkbox column.
+// Purely decorative: didn't end up using in the final release
 class HeaderTicks : public juce::Component
 {
 public:

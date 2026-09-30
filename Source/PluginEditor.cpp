@@ -1,16 +1,7 @@
-    /*
-    ==============================================================================
-
-        This file contains the basic framework code for a JUCE plugin editor.
-
-    ==============================================================================
-    */
-
     #include "PluginProcessor.h"
     #include "PluginEditor.h"
     #include "HeaderTicks.h"
 
-    //==============================================================================
     ParsimoniousAudioProcessorEditor::ParsimoniousAudioProcessorEditor (ParsimoniousAudioProcessor& p)
         : AudioProcessorEditor (&p), audioProcessor (p)
     {
@@ -94,8 +85,6 @@
         addAndMakeVisible(loopCheck);
         forceLoopAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
             audioProcessor.apvts, "forceLoop", loopCheck);
-
-        // Tighter window: sized to what's actually on screen, no reserved dead space.
         setSize (420, 210);
     }
 
@@ -104,7 +93,6 @@
         setLookAndFeel (nullptr);
     }
 
-    //==============================================================================
     void ParsimoniousAudioProcessorEditor::paint (juce::Graphics& g)
     {
         g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
@@ -130,7 +118,7 @@
 
         area.removeFromTop (10);
 
-        const int gap = 8; // shared spacing used everywhere below
+        const int gap = 8;
         const int knobSize = 56;
 
         auto knobRow = area.removeFromTop (knobSize);
@@ -162,8 +150,6 @@
         seedBox.items.add (juce::FlexItem (randomButton).withFlex (1.0f).withHeight (28.0f));
         seedBox.performLayout (seedRow.toFloat());
 
-        // Drag target fills everything left, with the same gap above it
-        // as the one between the generate button and the seed row.
         auto dragTop = seedRow.getBottom() + gap;
         dragArea.setBounds (area.getX(), dragTop, area.getWidth(), area.getBottom() - dragTop);
     }
