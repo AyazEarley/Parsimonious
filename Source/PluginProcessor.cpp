@@ -3,7 +3,6 @@
 
 #include <random>
 
-//==============================================================================
 ParsimoniousAudioProcessor::ParsimoniousAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
@@ -62,7 +61,6 @@ ParsimoniousAudioProcessor::~ParsimoniousAudioProcessor()
 {
 }
 
-//==============================================================================
 const juce::String ParsimoniousAudioProcessor::getName() const
 {
     return JucePlugin_Name;
@@ -241,7 +239,7 @@ std::vector<std::vector<bool>> ParsimoniousAudioProcessor::buildCanReach (int ho
 {
     std::vector<std::vector<bool>> canReach (maxSteps + 1, std::vector<bool> (60, false));
 
-    canReach[0][home] = true;   // base case: can_reach[0] = {home}
+    canReach[0][home] = true; //base case
 
     for (int r = 1; r <= maxSteps; ++r)
     {
@@ -302,7 +300,7 @@ std::vector<int> ParsimoniousAudioProcessor::neighborsTriad (int state)
 
 std::vector<std::vector<bool>> ParsimoniousAudioProcessor::buildCanReachTriads (int home, int maxSteps)
 {
-    const int stateSpace = 24; // 2 qualities x 12 roots
+    const int stateSpace = 24; //2 qualities x 12 roots
 
     std::vector<std::vector<bool>> canReach (maxSteps + 1, std::vector<bool> (stateSpace, false));
 
@@ -371,8 +369,6 @@ void ParsimoniousAudioProcessor::setStateInformation (const void* data, int size
     // whose contents will have been created by the getStateInformation() call.
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new ParsimoniousAudioProcessor();
