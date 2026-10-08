@@ -395,6 +395,8 @@ void ParsimoniousAudioProcessor::publishPath (const std::vector<std::array<int, 
     if (! onPathGenerated)
         return;
 
+    auto safePath = (path.size() < 2) ? std::vector<std::array<int, 2>>{} : path;
+
     juce::MessageManager::callAsync ([this, path]
     {
         if (onPathGenerated)
@@ -422,12 +424,13 @@ std::vector<std::array<int, 4>> ParsimoniousAudioProcessor::getChords (){
     if(static_cast<bool> (forceLoopParam->load())){
         int home = makeState(quality, root);
         std::vector<std::vector<bool>> canReach = buildCanReach(home, numChords);
-        std::vector<int> sequence = generateLoop (home, numChords, canReach);
+        std::vector<int> sequence = (numChords == 1)
+                              ? std::vector<int> { home, home }
+                              : generateLoop (home, numChords, canReach);
 
-        // Build the path for the UI (includes the closing step back to home)
         std::vector<std::array<int, 2>> path;
         for (int state : sequence)
-            path.push_back ({ stateRoot (state), stateQuality (state) });   // {root, quality}
+            path.push_back ({ stateRoot (state), stateQuality (state) });
         publishPath (path);
 
         sequence.pop_back();
