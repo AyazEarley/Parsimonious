@@ -85,7 +85,9 @@
         addAndMakeVisible(loopCheck);
         forceLoopAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
             audioProcessor.apvts, "forceLoop", loopCheck);
-        setSize (420, 210);
+
+        addAndMakeVisible (chordWeb);
+        setSize (630, 210);
     }
 
     ParsimoniousAudioProcessorEditor::~ParsimoniousAudioProcessorEditor()
@@ -100,7 +102,16 @@
 
     void ParsimoniousAudioProcessorEditor::resized()
     {
-        auto area = getLocalBounds().reduced (14);
+        auto fullArea = getLocalBounds().reduced (14);
+
+        const int webWidth = 210 - 14;
+        const int webGap   = 14;    
+        auto webArea = fullArea.removeFromRight (webWidth);
+        fullArea.removeFromRight (webGap);
+
+        chordWeb.setBounds (webArea);
+
+        auto area = fullArea;
 
         auto header = area.removeFromTop (34);
         auto checkboxArea = header.removeFromRight (68);

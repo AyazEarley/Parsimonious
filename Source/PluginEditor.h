@@ -3,6 +3,7 @@
 #include "PluginProcessor.h"
 #include "ModularMonoLookAndFeel.h"
 #include "HeaderTicks.h"
+#include "ChordWeb.h"
 
 //==============================================================================
 // Custom label that knows how to start an external file drag
@@ -93,4 +94,6 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> forceLoopAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParsimoniousAudioProcessorEditor)
+
+    ChordWebComponent chordWeb;
 };
