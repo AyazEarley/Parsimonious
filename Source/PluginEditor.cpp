@@ -87,6 +87,14 @@
             audioProcessor.apvts, "forceLoop", loopCheck);
 
         addAndMakeVisible (chordWeb);
+
+
+        juce::Component::SafePointer<ChordWebComponent> safeWeb (&chordWeb);
+        audioProcessor.onPathGenerated = [safeWeb] (const std::vector<std::array<int, 2>>& path)
+        {
+            if (safeWeb != nullptr)
+                safeWeb->highlightPath (path);
+        };
         setSize (630, 210);
     }
 

@@ -3,6 +3,8 @@
 #include <cmath>
 #include <array>
 #include <map>
+#include <vector>
+#include <utility>
 
 class ChordWebComponent : public juce::Component
 {
@@ -59,9 +61,9 @@ private:
 
     std::map<std::array<int, 2>, std::array<double, 2>> positionMap = {
         //full diminished
-        {full7Chords[0], getXY(0, radiusStep * 9)},
-        {full7Chords[1], getXY(rotationStep * 4, radiusStep * 9)},
-        {full7Chords[2], getXY(rotationStep * 8, radiusStep * 9)},
+        {full7Chords[0], getXY(0, radiusStep * 8)},
+        {full7Chords[1], getXY(rotationStep * 4, radiusStep * 8)},
+        {full7Chords[2], getXY(rotationStep * 8, radiusStep * 8)},
 
         //major7
         {major7Chords[5], getXY(0, radiusStep * 1)},
@@ -127,14 +129,167 @@ private:
         {dom7Chords[11], getXY(rotationStep * 11, radiusStep * 7)},
         {dom7Chords[2], getXY(rotationStep * 11, radiusStep * 8)},
     };
-    
+
+    //==============================================================================
+    // Lines
+    //==============================================================================
+    using ChordKey = std::array<int, 2>;              // { root, quality }
+    using EdgeKey  = std::pair<ChordKey, ChordKey>;   // always stored sorted
+
+    struct LineInfo
+    {
+        bool highlighted = false;
+    };
+
+    std::map<EdgeKey, LineInfo> lines;
+
+    // Option tables: { semitone offset from the source chord's root, quality of target }
+    static constexpr std::array<std::array<int, 2>, 4> majOptions
+    {{
+        {{ 9, MINOR7}},
+        {{ 4, MINOR7}},
+        {{ 0, DOM7}},
+        {{ 1, HALF7}}
+    }};
+
+    static constexpr std::array<std::array<int, 2>, 4> minOptions
+    {{
+        {{ 0, DOM7}},
+        {{ 3, MAJOR7}},
+        {{ 9, HALF7}},
+        {{ 0, HALF7}}
+    }};
+
+    static constexpr std::array<std::array<int, 2>, 4> domOptions
+    {{
+        {{ 0, MINOR7}},
+        {{ 9, MINOR7}},
+        {{ 4, HALF7}},
+        {{ 1, FULL7}}
+    }};
+
+    static constexpr std::array<std::array<int, 2>, 3> halfOptions
+    {{
+        {{ 0, FULL7}},
+        {{ 0, MINOR7}},
+        {{ 3, MINOR7}}
+    }};
+
+    static constexpr std::array<std::array<int, 2>, 8> fullOptions
+    {{
+        {{ 0, HALF7}},
+        {{ 3, HALF7}},
+        {{ 6, HALF7}},
+        {{ 9, HALF7}},
+
+        {{ 2, DOM7}},
+        {{ 11, DOM7}},
+        {{ 8, DOM7}},
+        {{ 5, DOM7}},
+    }};
+
+    // Wrap roots into the valid range (full diminished chords only exist for roots 0-2)
+    static ChordKey normalise (ChordKey c)
+    {
+        if (c[1] == FULL7)
+            c[0] = ((c[0] % 3) + 3) % 3;
+        else
+            c[0] = ((c[0] % 12) + 12) % 12;
+        return c;
+    }
+
+    // Lines are undirected, so sort the endpoints to get one canonical key
+    static EdgeKey makeEdgeKey (ChordKey a, ChordKey b)
+    {
+        a = normalise (a);
+        b = normalise (b);
+        return (a < b) ? EdgeKey { a, b } : EdgeKey { b, a };
+    }
+
+    template <typename Options>
+    void addEdges (const ChordKey& from, const Options& options)
+    {
+        for (const auto& opt : options)
+        {
+            ChordKey to = normalise (ChordKey { from[0] + opt[0], opt[1] });
+
+            if (positionMap.count (to) > 0)   // skip anything that isn't on the map
+                lines.emplace (makeEdgeKey (from, to), LineInfo{});   // duplicates ignored
+        }
+    }
+
+    void buildLines()
+    {
+        lines.clear();
+
+        for (const auto& entry : positionMap)
+        {
+            const ChordKey& chord = entry.first;
+
+            switch (chord[1])
+            {
+                case MAJOR7: addEdges (chord, majOptions);  break;
+                case MINOR7: addEdges (chord, minOptions);  break;
+                case DOM7:   addEdges (chord, domOptions);  break;
+                case HALF7:  addEdges (chord, halfOptions); break;
+                case FULL7:  addEdges (chord, fullOptions); break;
+                default: break;
+            }
+        }
+    }
 
 public:
     ChordWebComponent()
     {
         setOpaque (false);
         setInterceptsMouseClicks (false, false); // doesn't steal clicks (for now)
+        buildLines();
     }
+
+    void clearHighlights()
+    {
+        for (auto& entry : lines)
+            entry.second.highlighted = false;
+
+        repaint();
+    }
+
+    // Highlight (or un-highlight) a single connection between two chords
+    void highlightLine (ChordKey a, ChordKey b, bool on = true)
+    {
+        auto it = lines.find (makeEdgeKey (a, b));
+
+        if (it != lines.end())
+            it->second.highlighted = on;
+
+        repaint();
+    }
+
+    // Highlight a pathway: consecutive chords in the list are joined.
+    // Clears any previous highlights first.
+    void highlightPath (const std::vector<ChordKey>& path)
+    {
+        for (auto& entry : lines)
+            entry.second.highlighted = false;
+
+        for (size_t i = 0; i + 1 < path.size(); ++i)
+        {
+            auto it = lines.find (makeEdgeKey (path[i], path[i + 1]));
+
+            if (it != lines.end())
+                it->second.highlighted = true;
+        }
+
+        repaint();
+    }
+
+    int getNumLines() const { return (int) lines.size(); }
+
+    static constexpr int Major7 = MAJOR7;
+    static constexpr int Minor7 = MINOR7;
+    static constexpr int Dom7   = DOM7;
+    static constexpr int Half7  = HALF7;
+    static constexpr int Full7  = FULL7;
 
     void paint (juce::Graphics& g) override
     {
@@ -145,24 +300,48 @@ public:
 
         const auto centre = bounds.getCentre();
 
-        const float margin     = 20.0f;
+        const float margin = 10.0f;
         const float pixelRadius = juce::jmin (bounds.getWidth(), bounds.getHeight()) * 0.5f - margin;
         const float scale = pixelRadius / (float) radius;
-        const float diameter = 5.0f; //juce::jmax (6.0f, pixelRadius * 0.005f);
-        
+        const float diameter = 3.5f; //juce::jmax (6.0f, pixelRadius * 0.005f);
+
         bool useTriads = false; //for now we're only working on the nontriad option
         if (! useTriads)
         {
+            auto toPixel = [&] (const ChordKey& c) -> juce::Point<float>
+            {
+                const auto& p = positionMap.at (c);
+                return { centre.x + (float) p[0] * scale,
+                         centre.y - (float) p[1] * scale };
+            };
+
+            for (int pass = 0; pass < 2; ++pass)
+            {
+                for (const auto& entry : lines)
+                {
+                    const auto& key  = entry.first;
+                    const auto& info = entry.second;
+
+                    if (info.highlighted != (pass == 1))
+                        continue;
+
+                    g.setColour (info.highlighted ? juce::Colours::black.withAlpha (0.8f)
+                                                  : juce::Colours::black.withAlpha (0.2f));
+
+                    g.drawLine (juce::Line<float> (toPixel (key.first), toPixel (key.second)),
+                                info.highlighted ? 1.0f : 1.0f); //Change thickness of lines
+                }
+            }
+
             g.setColour (juce::Colours::black);
 
-            for (const auto& [chord, pos] : positionMap)
+            for (const auto& entry : positionMap)
             {
-                const float x = centre.x + (float) pos[0] * scale;
-                const float y = centre.y - (float) pos[1] * scale; // flip y so angles go counter-clockwise
+                const auto p = toPixel (entry.first);
 
-                g.fillEllipse (x - diameter * 0.5f,
-                            y - diameter * 0.5f,
-                            diameter, diameter);
+                g.fillEllipse (p.x - diameter * 0.5f,
+                               p.y - diameter * 0.5f,
+                               diameter, diameter);
             }
         }
     }

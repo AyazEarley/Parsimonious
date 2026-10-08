@@ -59,6 +59,8 @@ public:
 
     void cleanupOldMidiFiles (int maxAgeInSeconds = 3600);
     juce::File lastGeneratedMidiFile;
+
+    std::function<void (const std::vector<std::array<int, 2>>&)> onPathGenerated;
     
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ParsimoniousAudioProcessor)
@@ -93,6 +95,8 @@ private:
     int makeStateTriad (int quality, int root) const;
     int stateQualityTriad (int state) const;
     int stateRootTriad (int state) const;
+
+    void publishPath (const std::vector<std::array<int, 2>>& path);
 
 
     static constexpr std::array<std::array<int, 2>, 4> majOptions

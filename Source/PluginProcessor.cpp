@@ -388,6 +388,19 @@ double ParsimoniousAudioProcessor::getHostTempo()
     return 120.0;
 }
 
+//==============================================================================
+// Hands the generated path to whoever is listening (the editor), on the message thread
+void ParsimoniousAudioProcessor::publishPath (const std::vector<std::array<int, 2>>& path)
+{
+    if (! onPathGenerated)
+        return;
+
+    juce::MessageManager::callAsync ([this, path]
+    {
+        if (onPathGenerated)
+            onPathGenerated (path);
+    });
+}
 
 std::vector<std::array<int, 4>> ParsimoniousAudioProcessor::getChords (){
     int bars = static_cast<int> (barsParam->load());
@@ -410,6 +423,13 @@ std::vector<std::array<int, 4>> ParsimoniousAudioProcessor::getChords (){
         int home = makeState(quality, root);
         std::vector<std::vector<bool>> canReach = buildCanReach(home, numChords);
         std::vector<int> sequence = generateLoop (home, numChords, canReach);
+
+        // Build the path for the UI (includes the closing step back to home)
+        std::vector<std::array<int, 2>> path;
+        for (int state : sequence)
+            path.push_back ({ stateRoot (state), stateQuality (state) });   // {root, quality}
+        publishPath (path);
+
         sequence.pop_back();
 
         std::vector<std::array<int, 4>> retChords;
@@ -447,28 +467,29 @@ std::vector<std::array<int, 4>> ParsimoniousAudioProcessor::getChords (){
             newQuality = majOptions[index][1];
         }
         else if (lastQuality == MINOR7){
-            index = index = seededRandom(0, 3);
+            index = seededRandom(0, 3);
             newRoot = (lastRoot + minOptions[index][0]) % 12;
             newQuality = minOptions[index][1];
         }
         else if (lastQuality == DOM7){
-            index = index = seededRandom(0, 3);
+            index = seededRandom(0, 3);
             newRoot = (lastRoot + domOptions[index][0]) % 12;
             newQuality = domOptions[index][1];
         }
         else if (lastQuality == HALF7){
-            index = index = seededRandom(0, 2);
+            index = seededRandom(0, 2);
             newRoot = (lastRoot + halfOptions[index][0]) % 12;
             newQuality = halfOptions[index][1];
         }
         else{
-            std::uniform_int_distribution<int> distrib(0, 7);
-            index = index = seededRandom(0, 7);
+            index = seededRandom(0, 7);
             newRoot = (lastRoot + fullOptions[index][0]) % 12;
             newQuality = fullOptions[index][1];
         }
         chordSequence.push_back({newRoot, newQuality});
     }
+
+    publishPath (chordSequence);   // already {root, quality}
 
     std::vector<std::array<int, 4>> retChords;
     for(int i = 0; i <numChords; i++){
