@@ -1,4 +1,4 @@
-# Parsimonious
+# Parsimonious - JUCE VST3
 
 ### A New Way to Generate Chord Progressions
 
