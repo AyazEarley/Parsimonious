@@ -87,6 +87,13 @@
             audioProcessor.apvts, "forceLoop", loopCheck);
 
         addAndMakeVisible (chordWeb);
+        triadsWebAttachment = std::make_unique<juce::ParameterAttachment> (
+            *audioProcessor.apvts.getParameter ("useTriads"),
+            [this] (float newValue)
+            {
+                chordWeb.setUseTriads (newValue > 0.5f);
+            });
+        triadsWebAttachment->sendInitialUpdate();
 
 
         juce::Component::SafePointer<ChordWebComponent> safeWeb (&chordWeb);
@@ -201,9 +208,9 @@
                 dragArea.setText ("generation failed", juce::dontSendNotification);
         }
         else if(button == &randomButton){
-            int seed = randomSeedGenerator.nextInt(1000); // 0-999
+            int seed = randomSeedGenerator.nextInt(1000);
             intBox.setText(juce::String(seed), juce::dontSendNotification);
-            validateAndClampInput(); // pushes the new value into the "userSeed" parameter
+            validateAndClampInput();
         }
     }
 

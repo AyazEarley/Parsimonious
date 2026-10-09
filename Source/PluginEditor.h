@@ -5,16 +5,13 @@
 #include "HeaderTicks.h"
 #include "ChordWeb.h"
 
-//==============================================================================
-// Custom label that knows how to start an external file drag
 class MidiDragLabel : public juce::Label
 {
 public:
-    std::function<juce::File()> onDragRequested; // returns the midi file to drag
+    std::function<juce::File()> onDragRequested;
 
     void mouseDown (const juce::MouseEvent& e) override
     {
-        // let normal label behaviour happen too, if you want click-to-select etc.
         juce::Label::mouseDown (e);
     }
 
@@ -23,7 +20,6 @@ public:
         if (dragging || onDragRequested == nullptr)
             return;
 
-        // small threshold so a click doesn't register as a drag
         if (e.getDistanceFromDragStart() < 5)
             return;
 
@@ -39,7 +35,7 @@ public:
         {
             container->performExternalDragDropOfFiles (
                 juce::StringArray (midiFile.getFullPathName()),
-                false, // don't allow moving the file, just copy/drop
+                false,
                 this,
                 nullptr);
         }
@@ -51,7 +47,6 @@ private:
     bool dragging = false;
 };
 
-//==============================================================================
 class ParsimoniousAudioProcessorEditor  : public juce::AudioProcessorEditor,
                                            public juce::Button::Listener,
                                            public juce::DragAndDropContainer
@@ -80,6 +75,7 @@ private:
 
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> numBarsAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> chordsPerBarAttachment;
+    std::unique_ptr<juce::ParameterAttachment> triadsWebAttachment; 
 
     juce::File lastGeneratedFile;
     juce::TextButton randomButton;

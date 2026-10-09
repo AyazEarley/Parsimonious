@@ -395,12 +395,14 @@ void ParsimoniousAudioProcessor::publishPath (const std::vector<std::array<int, 
     if (! onPathGenerated)
         return;
 
+    // A path needs at least two chords to have an edge; otherwise send an empty
+    // path so the editor clears any old highlights.
     auto safePath = (path.size() < 2) ? std::vector<std::array<int, 2>>{} : path;
 
-    juce::MessageManager::callAsync ([this, path]
+    juce::MessageManager::callAsync ([this, safePath]
     {
         if (onPathGenerated)
-            onPathGenerated (path);
+            onPathGenerated (safePath);
     });
 }
 
@@ -563,7 +565,10 @@ std::vector<std::array<int, 3>> ParsimoniousAudioProcessor::getTriads (){
     bool forceLoop = static_cast<bool> (forceLoopParam->load());
 
     if (forceLoop && numChords % 2 != 0)
+    {
+        publishPath ({});   // nothing to show; clear old highlights
         return {};
+    }
 
     int userSeedTemp = static_cast<int> (userSeedParam->load());
     currentSeed = userSeedTemp;
@@ -578,6 +583,13 @@ std::vector<std::array<int, 3>> ParsimoniousAudioProcessor::getTriads (){
         int home = makeStateTriad (quality, root);
         std::vector<std::vector<bool>> canReach = buildCanReachTriads (home, numChords);
         std::vector<int> sequence = generateLoopTriads (home, numChords, canReach);
+
+        // Publish before pop_back() so the closing edge back to the home chord is drawn
+        std::vector<std::array<int, 2>> path;
+        for (int state : sequence)
+            path.push_back ({ stateRootTriad (state), stateQualityTriad (state) });
+        publishPath (path);
+
         sequence.pop_back();
 
         std::vector<std::array<int, 3>> retChords;
@@ -621,6 +633,8 @@ std::vector<std::array<int, 3>> ParsimoniousAudioProcessor::getTriads (){
         }
         chordSequence.push_back({newRoot, newQuality});
     }
+
+    publishPath (chordSequence);   // already {root, quality}
 
     std::vector<std::array<int, 3>> retChords;
     for(int i = 0; i <numChords; i++){
