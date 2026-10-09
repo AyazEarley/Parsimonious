@@ -2,7 +2,7 @@
 
 ### A New Way to Generate Chord Progressions
 
-<img src="image3.png" width="600" alt="Screenshot">
+<img src="image3.png" width="750" alt="Screenshot">
 
 ## Project Overview
 
