@@ -56,6 +56,6 @@ with an odd length, the plugin catches it and sends a warning to the user.
 - CMake
 
 ## Licensing
-- Source code: © 2026 Ayaz Earley, all rights reserved (see LICENSE).
+- Source code: © 2026 Ayaz Earley, all rights reserved.
 - Built with JUCE 9 under the JUCE Starter license. JUCE is not included
   in this repository.
