@@ -1,6 +1,6 @@
 # Parsimonious - A New Way to Generate Chord Progressions
 
-<img src="image.png" width="400" alt="Screenshot">
+<img src="image2.png" width="400" alt="Screenshot">
 
 ## Project Overview
 
