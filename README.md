@@ -6,9 +6,13 @@
 
 ## Download the Test Build:
 
-If you want to contribute feedback for the plugin, feel free to download below and shoot me an email with your thoughts :)
+If you want to contribute feedback for the plugin, feel free to download below and give me feedback on the google form. The plugin is a VST3, so it's compatible with every standard DAW, and can even be used in notation software like MuseScore and Sibelius. After downloading, extract the zip file and move into into your VST3 folder:
 
-[Download Here](https://drive.google.com/file/d/153Ptsk1MJFuMerpS6p0SEiMOMGWYA2sr/view?usp=sharing)  
+Windows: `C:\Program Files\Common Files\VST3`   
+macOS: `/Library/Audio/Plug-Ins/VST3/`
+
+[Download Here](https://drive.google.com/file/d/153Ptsk1MJFuMerpS6p0SEiMOMGWYA2sr/view?usp=sharing)    
+[Google Form](https://forms.gle/7313EcmMn4edh3Jt6)    
 Email: ayazearley@gmail.com
 
 ## Project Overview
