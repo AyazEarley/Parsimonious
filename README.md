@@ -4,6 +4,13 @@
 
 <img src="image3.png" width="750" alt="Screenshot">
 
+## Download the Test Build:
+
+If you want to contribute feedback for the plugin, feel free to download below and shoot me an email with your thoughts :)
+
+[Download Here](https://drive.google.com/file/d/153Ptsk1MJFuMerpS6p0SEiMOMGWYA2sr/view?usp=sharing)  
+Email: ayazearley@gmail.com
+
 ## Project Overview
 
 Parsimonious is a VST3 plugin for generating mathematically smooth 
